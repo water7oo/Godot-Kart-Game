@@ -1,0 +1,37 @@
+[gd_scene load_steps=6 format=3 uid="uid://bramde02kmtgl"]
+
+[ext_resource type="Texture2D" uid="uid://dx0vwoe766a8c" path="res://Textures/kenney_prototype_textures/dark/texture_08.png" id="1_8tqna"]
+[ext_resource type="PackedScene" uid="uid://dxbdmjmgua2h4" path="res://PlayerKart/camera.tscn" id="2_rpunu"]
+[ext_resource type="PackedScene" uid="uid://co3dahc6ro6sh" path="res://PlayerKart/PLAYER.tscn" id="3_xnivd"]
+
+[sub_resource type="Environment" id="Environment_bejvm"]
+background_mode = 1
+background_color = Color(0.215686, 0.737255, 0.854902, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lcd2p"]
+albedo_texture = ExtResource("1_8tqna")
+uv1_scale = Vector3(16.95, 16.95, 16.95)
+
+[node name="TRACK1" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_bejvm")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 7.87023, 0)
+sky_mode = 1
+
+[node name="CSGCombiner3D" type="CSGCombiner3D" parent="."]
+transform = Transform3D(3.315, 0, 0, 0, 3.315, 0, 0, 0, 3.315, 0, 0, 0)
+material_override = SubResource("StandardMaterial3D_lcd2p")
+use_collision = true
+
+[node name="CSGBox3D" type="CSGBox3D" parent="CSGCombiner3D"]
+transform = Transform3D(25.365, 0, 0, 0, 25.365, 0, 0, 0, 25.365, 0, 0.0119028, 0)
+size = Vector3(1, 0.0259399, 1)
+
+[node name="Player" parent="." instance=ExtResource("3_xnivd")]
+transform = Transform3D(0.595, 0, 0, 0, 0.595, 0, 0, 0, 0.595, 0, 2.41504, 0)
+
+[node name="Camera" parent="Player" instance=ExtResource("2_rpunu")]
+transform = Transform3D(0.999916, 4.2257e-10, 0.0129499, -0.000501405, 0.99925, 0.0387153, -0.0129402, -0.0387188, 0.999166, 0, 1.03376, 4.9011)
