@@ -6,9 +6,10 @@ var spring_arm = camera.get_node("SpringArmPivot/SpringArm3D")
 var playerLook = camera.get_node("SpringArmPivot/MeshInstance3D")
 
 
-@export var MAX_STEER = 0.5
-@export var ENGINE_POWER = 10
+@export var MAX_STEER = 0.4
+@export var ENGINE_POWER = 140
 var jumpUses = 1 
+
 
 
 @export var mouse_sensitivity = .005

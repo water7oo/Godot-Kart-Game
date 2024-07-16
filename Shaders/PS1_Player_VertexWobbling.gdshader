@@ -1,7 +1,7 @@
 shader_type spatial;
 render_mode blend_mix, 
 	cull_disabled,
-	depth_prepass_alpha, depth_draw_always,
+	depth_prepass_alpha, depth_draw_always, unshaded, 
 	vertex_lighting, diffuse_toon, specular_toon;
 
 uniform bool affine_mapping = false;
