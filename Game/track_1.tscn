@@ -1,22 +1,33 @@
-[gd_scene load_steps=8 format=3 uid="uid://bramde02kmtgl"]
+[gd_scene load_steps=10 format=3 uid="uid://bramde02kmtgl"]
 
-[ext_resource type="Texture2D" uid="uid://dx0vwoe766a8c" path="res://Textures/kenney_prototype_textures/dark/texture_08.png" id="1_8tqna"]
+[ext_resource type="Material" uid="uid://tw57ogy135bv" path="res://Materials/Track1.tres" id="1_qk13b"]
 [ext_resource type="PackedScene" uid="uid://dxbdmjmgua2h4" path="res://PlayerKart/camera.tscn" id="2_rpunu"]
-[ext_resource type="PackedScene" uid="uid://co3dahc6ro6sh" path="res://PlayerKart/PLAYER.tscn" id="3_xnivd"]
+[ext_resource type="Script" path="res://Game/targetTOplayer.gd" id="3_b0dj6"]
+[ext_resource type="PackedScene" uid="uid://c234sbpgacxub" path="res://PLAYERKARTPROTOTYPE.tscn" id="4_8f312"]
 [ext_resource type="Shader" path="res://Shaders/PicoPixel.gdshader" id="4_yi8s1"]
 
-[sub_resource type="Environment" id="Environment_bejvm"]
-background_mode = 1
-background_color = Color(0.203922, 0.709804, 1, 1)
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_utsgx"]
+sky_top_color = Color(0, 0.486275, 0.67451, 1)
+sky_horizon_color = Color(0, 0.756863, 0.694118, 1)
+ground_bottom_color = Color(0.0666667, 0.498039, 0.572549, 1)
+ground_horizon_color = Color(0, 0.756863, 0.67451, 1)
+ground_curve = 0.0221913
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lcd2p"]
-albedo_texture = ExtResource("1_8tqna")
-uv1_scale = Vector3(16.95, 16.95, 16.95)
+[sub_resource type="Sky" id="Sky_ddgcv"]
+sky_material = SubResource("ProceduralSkyMaterial_utsgx")
+
+[sub_resource type="Environment" id="Environment_bejvm"]
+background_mode = 2
+background_color = Color(0, 0.729412, 0.945098, 1)
+sky = SubResource("Sky_ddgcv")
+ambient_light_source = 2
+ambient_light_color = Color(0.741176, 0.741176, 0.741176, 1)
+adjustment_enabled = true
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_bdwxw"]
 shader = ExtResource("4_yi8s1")
 shader_parameter/change_color_depth = true
-shader_parameter/target_color_depth = 4
+shader_parameter/target_color_depth = 3
 shader_parameter/dithering = true
 shader_parameter/scale_resolution = true
 shader_parameter/target_resolution_scale = 2
@@ -32,8 +43,8 @@ transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 7.8
 sky_mode = 1
 
 [node name="CSGCombiner3D" type="CSGCombiner3D" parent="."]
-transform = Transform3D(5.9483, 0, 0, 0, 3.315, 0, 0, 0, 9.13886, 0, 0, 0)
-material_override = SubResource("StandardMaterial3D_lcd2p")
+transform = Transform3D(18.669, 0, 0, 0, 10.405, 0, 0, 0, 28.685, 0, 0, 0)
+material_override = ExtResource("1_qk13b")
 use_collision = true
 
 [node name="CSGBox3D" type="CSGBox3D" parent="CSGCombiner3D"]
@@ -61,8 +72,18 @@ handle_input_locally = false
 size = Vector2i(1152, 648)
 render_target_update_mode = 4
 
-[node name="Camera" parent="Preview/SubViewportContainer/SubViewport" instance=ExtResource("2_rpunu")]
-transform = Transform3D(0.59495, 3.41666e-11, 0.00770519, -0.00172713, 0.57986, 0.133359, -0.00750916, -0.13337, 0.579811, 0, 3.71899, 3.49757)
+[node name="CamTarget" type="Marker3D" parent="Preview/SubViewportContainer/SubViewport"]
+transform = Transform3D(-0.999999, 0, -1.50996e-07, 0, 1, 0, 1.50996e-07, 0, -0.999999, 6.27572, 15.8997, -15.4502)
+gizmo_extents = 4.65
+script = ExtResource("3_b0dj6")
+enabled = false
+playerTarget = NodePath("../PlayerKartPrototype")
 
-[node name="Player" parent="Preview/SubViewportContainer/SubViewport" instance=ExtResource("3_xnivd")]
-transform = Transform3D(0.595, 0, 0, 0, 0.595, 0, 0, 0, 0.595, 0, 2.41504, 0)
+[node name="PlayerKartPrototype" parent="Preview/SubViewportContainer/SubViewport" instance=ExtResource("4_8f312")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.24371, 14.3436, -13.988)
+
+[node name="Camera" parent="Preview/SubViewportContainer/SubViewport" instance=ExtResource("2_rpunu")]
+transform = Transform3D(-0.027152, -0.185433, -0.982282, 0.00240327, 0.982629, -0.185565, 0.999628, -0.00739912, -0.0262347, -0.233498, 113.017, 13.4176)
+target = NodePath("../CamTarget")
+speed = 7.0
+enabled = true

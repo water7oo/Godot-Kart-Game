@@ -1,34 +1,40 @@
-[gd_scene load_steps=5 format=3 uid="uid://dxbdmjmgua2h4"]
+[gd_scene load_steps=6 format=3 uid="uid://dxbdmjmgua2h4"]
 
 [ext_resource type="Shader" path="res://Shaders/CameraOutline.gdshader" id="1_203pq"]
+[ext_resource type="Script" path="res://PlayerKart/camera.gd" id="1_y5joa"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_co7ck"]
 render_priority = 0
 shader = ExtResource("1_203pq")
 shader_parameter/shadow_color = Color(0, 0, 0, 1)
-shader_parameter/shadow_thickness = 1.0
+shader_parameter/shadow_thickness = 1.5
 
 [sub_resource type="QuadMesh" id="QuadMesh_2tk2h"]
 size = Vector2(4, 4)
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_uddto"]
 
-[node name="Camera" type="Node3D"]
+[node name="Camera" type="Node3D" node_paths=PackedStringArray("spring_arm_pivot")]
+script = ExtResource("1_y5joa")
+spring_arm_pivot = NodePath("SpringArmPivot")
 
 [node name="SpringArmPivot" type="Node3D" parent="."]
 
 [node name="SpringArm3D" type="SpringArm3D" parent="SpringArmPivot"]
-transform = Transform3D(1, 0, 0, 0, 0.994113, 0.108346, 0, -0.108346, 0.994113, 0, 1.38593, 2.96095)
+transform = Transform3D(1, 0, 0, 0, -0.898579, -0.438809, 0, 0.438809, -0.898579, 0, 11.1306, 21.2529)
+spring_length = 1.59
 
 [node name="Camera3D" type="Camera3D" parent="SpringArmPivot/SpringArm3D"]
+transform = Transform3D(1, 0, 0, 0, -0.986562, 0.163395, 0, -0.163395, -0.986562, 0, 8.07309, -17.2566)
+fov = 57.7
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="SpringArmPivot/SpringArm3D/Camera3D"]
 transform = Transform3D(1, 0, 0, 0, 0.994113, -0.108346, 0, 0.108346, 0.994113, 0, -0.151872, -1.09005)
+visible = false
 material_override = SubResource("ShaderMaterial_co7ck")
 mesh = SubResource("QuadMesh_2tk2h")
 skeleton = NodePath("../../../..")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.768421, 0)
-visible = false
 mesh = SubResource("CapsuleMesh_uddto")

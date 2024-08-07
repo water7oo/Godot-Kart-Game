@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://lwtmaslnf8so"]
+
+[ext_resource type="PackedScene" uid="uid://bp1v5m8dnlm0v" path="res://Tracks/PeachGardensDsTrack.blend" id="1_eu4g5"]
+
+[node name="PeachGardensDsTrack" instance=ExtResource("1_eu4g5")]
+transform = Transform3D(0.35, 0, 0, 0, 0.35, 0, 0, 0, 0.35, 0, 0, 0)
