@@ -64,7 +64,7 @@ move_drift2={
 
 [physics]
 
-3d/default_gravity=50.0
+3d/default_gravity=60.0
 
 [rendering]
 

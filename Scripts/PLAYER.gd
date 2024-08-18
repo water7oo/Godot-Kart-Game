@@ -4,10 +4,14 @@ var camera = preload("res://PlayerKart/camera.tscn").instantiate()
 var spring_arm_pivot = camera.get_node("SpringArmPivot")
 var spring_arm = camera.get_node("SpringArmPivot/SpringArm3D")
 var playerLook = camera.get_node("SpringArmPivot/MeshInstance3D")
-@onready var groundDetection1 = $GroundDetection
-@onready var groundDetection2 = $GroundDetection2
-@onready var groundDetection3 = $GroundDetection3
-@onready var groundDetection4 = $GroundDetection4
+
+@onready var drift_dust = get_tree().get_nodes_in_group("drift_dust")
+
+
+@onready var groundDetection1 = $isOnGround/GroundDetection
+@onready var groundDetection2 = $isOnGround/GroundDetection2
+@onready var groundDetection3 = $isOnGround/GroundDetection3
+@onready var groundDetection4 = $isOnGround/GroundDetection4
 
 @onready var Wheel1 = $VehicleWheel3D
 @onready var Wheel2 = $VehicleWheel3D2
@@ -15,6 +19,7 @@ var playerLook = camera.get_node("SpringArmPivot/MeshInstance3D")
 @onready var Wheel4 = $VehicleWheel3D4
 
 @export var Initial_max_steer = 0.4
+@export var Initial_max_speed = 70
 @export var MAX_STEER = 0.4
 @export var MAX_SPEED = 50
 @export var DRIFT_STEER = 0.9
@@ -32,16 +37,21 @@ var max_rotation_x = 1
 @onready var speedDebug = $SpeedDebug
 var can_jump = true
 var isOnGround = false
+var was_in_air = false
+var drift_direction = 0
+var counter_steer_strength = 20
+var hopCount = 0
 
 # Drift parameters
 var is_drifting: bool = false
 var drift_progress: float = 0.0
-var drift_duration: float = 2 # Time to fully drift (in seconds)
+var drift_duration: float = 1000 # Time to fully drift (in seconds)
 
 # Friction slip values
-var normal_friction_slip: float = 300.0
-var drift_friction_slip: float = 10.0
-
+var normal_friction_slip_front: float = 100
+var normal_friction_slip_back: float = 100.0
+var drift_friction_slip_front: float = 0
+var drift_friction_slip_back: float = 50.0
 
 func _ready():
 	speedDebug.value = linear_velocity.z
@@ -53,6 +63,7 @@ func _physics_process(delta):
 	_proccess_movement(delta)
 	_proccess_drifting(delta)
 	rotationLimit(delta)
+	particles(delta)
 
 func rotationLimit(delta):
 	var rotation = rotation_degrees
@@ -76,7 +87,7 @@ func rotationLimit(delta):
 		
 func _proccess_movement(delta):
 	#print((linear_velocity.z + linear_velocity.y + linear_velocity.x)/3)
-	print(linear_velocity.length())
+	#print(linear_velocity.length())
 	var right_input = Input.get_action_strength("move_right")
 	var left_input = Input.get_action_strength("move_left")
 
@@ -89,6 +100,7 @@ func _proccess_movement(delta):
 	
 	var current_speed = linear_velocity.length()
 	
+	
 	if current_speed > MAX_SPEED:
 		linear_velocity = linear_velocity.normalized() * MAX_SPEED
 		#print("REDUCE SPEED")
@@ -96,8 +108,13 @@ func _proccess_movement(delta):
 	set_engine_force(engine_force)
 	set_brake(Input.get_action_strength("move_brake") * ENGINE_POWER)
 		
-	
-	
+		
+	#if Input.is_action_pressed("move_brake"):
+		#Wheel1.use_as_traction = true
+		#Wheel2.use_as_traction = true
+	#else:
+		#Wheel1.use_as_traction = false
+		#Wheel2.use_as_traction = false
 	
 
 func _unhandled_input(event):
@@ -107,50 +124,90 @@ func _unhandled_input(event):
 	
 	
 
+func particles(delta):
+	var particle_emitter1 = $DriftDust/GPUParticles3D
+	var particle_emitter2 = $DriftDust2/GPUParticles3D
+	
+	
+	if particle_emitter1 && particle_emitter2:
+		if isOnGround and is_drifting:
+			particle_emitter1.set_emitting(true)
+			particle_emitter2.set_emitting(true)
+		else:
+			particle_emitter1.set_emitting(false)
+			particle_emitter2.set_emitting(false)
+
 
 func _proccess_drifting(delta):
-	#if Input.is_action_just_pressed("move_drift") && groundDetection1.is_colliding():
+	#if Input.is_action_just_pressed("move_drift") && isOnGround && hopCount == 0:
 		#apply_central_impulse(Vector3(0,hopPower,0))
 		#axis_lock_angular_z = true
-		#print("Drift Hop")
+		#was_in_air = true
+		#isOnGround = false
+		#hopCount = 1
+		#print(hopCount)
+	#else:
+		#hopCount = 0
+		#print(hopCount)
 	
 	#print(Wheel1.wheel_friction_slip)
-	if Input.is_action_pressed("move_drift") && isOnGround && linear_velocity.length() >= 20:
-		print("drift initiate")
-		is_drifting = true
+	if Input.is_action_pressed("move_drift") && isOnGround && linear_velocity.length() >= 50 && Input.is_action_pressed("move_gas"):
+		#await get_tree().create_timer(1).timeout
 		
 		
 		if Input.is_action_pressed("move_left") && isOnGround:
-			MAX_STEER = DRIFT_STEER
-			drift_progress += delta / drift_duration
-			drift_progress = min(drift_progress, 1.0)
-			apply_torque_impulse(Vector3(0, torquePower, 0))
-			print("Drifting Left")
+			if drift_direction != -1:
+				MAX_STEER = DRIFT_STEER
+				drift_progress += delta / drift_duration
+				drift_progress = min(drift_progress, 1.0)
+				apply_torque_impulse(Vector3(0, torquePower, 0))
+				print("Drifting Left")
+				is_drifting = true
+				drift_direction = -1
+				
+			if drift_direction == -1 and Input.is_action_pressed("move_right"):
+				MAX_STEER -= delta * -counter_steer_strength
+				print("Counter-steering Right")
+				print(MAX_STEER)
+			else:
+				MAX_STEER = Initial_max_steer
+			
 		
 		if Input.is_action_pressed("move_right") && isOnGround:
-			MAX_STEER = DRIFT_STEER
-			drift_progress += delta / drift_duration
-			drift_progress = min(drift_progress, 1.0)
-			apply_torque_impulse(Vector3(0, -torquePower, 0))
-			print("Drifting Right")
+			if drift_direction != 1:
+				MAX_STEER = DRIFT_STEER
+				drift_progress += delta / drift_duration
+				drift_progress = min(drift_progress, 1.0)
+				apply_torque_impulse(Vector3(0, -torquePower, 0))
+				print("Drifting Right")
+				is_drifting = true
+				drift_direction = 1
+		
+			if drift_direction == 1 and Input.is_action_pressed("move_left"):
+				MAX_STEER -= delta * -counter_steer_strength
+				print("Counter-steering Left")
+				print(MAX_STEER)
+			else:
+				MAX_STEER = Initial_max_steer
 	else:
 		MAX_STEER = Initial_max_steer
 		drift_progress -= delta / drift_duration
 		drift_progress = max(drift_progress, 0.0)
 		is_drifting = false
 		
-		Wheel1.wheel_friction_slip = 300
-		Wheel2.wheel_friction_slip = 300
-		Wheel3.wheel_friction_slip = 300
-		Wheel4.wheel_friction_slip = 300
+		Wheel1.wheel_friction_slip = normal_friction_slip_front
+		Wheel2.wheel_friction_slip = normal_friction_slip_front
+		Wheel3.wheel_friction_slip = normal_friction_slip_back
+		Wheel4.wheel_friction_slip = normal_friction_slip_back
 		physics_material_override.friction = 1
 		
 		
-	var target_friction_slip = lerp(normal_friction_slip, drift_friction_slip, drift_progress)
-	Wheel1.wheel_friction_slip = target_friction_slip
-	Wheel2.wheel_friction_slip = target_friction_slip
-	Wheel3.wheel_friction_slip = target_friction_slip
-	Wheel4.wheel_friction_slip = target_friction_slip
+	var target_friction_slip_front = lerp(normal_friction_slip_front, drift_friction_slip_front, drift_progress)
+	var target_friction_slip_back = lerp(normal_friction_slip_back, drift_friction_slip_back, drift_progress)
+	Wheel1.wheel_friction_slip = target_friction_slip_front
+	Wheel2.wheel_friction_slip = target_friction_slip_front
+	Wheel3.wheel_friction_slip = target_friction_slip_back
+	Wheel4.wheel_friction_slip = target_friction_slip_back
 	# Optionally interpolate material friction if needed
 	physics_material_override.friction = lerp(1.0, 0.0, drift_progress)
 		

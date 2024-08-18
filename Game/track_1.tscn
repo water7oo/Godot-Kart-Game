@@ -3,7 +3,7 @@
 [ext_resource type="Material" uid="uid://tw57ogy135bv" path="res://Materials/Track1.tres" id="1_qk13b"]
 [ext_resource type="PackedScene" uid="uid://dxbdmjmgua2h4" path="res://PlayerKart/camera.tscn" id="2_rpunu"]
 [ext_resource type="Script" path="res://Game/targetTOplayer.gd" id="3_b0dj6"]
-[ext_resource type="PackedScene" uid="uid://c234sbpgacxub" path="res://PLAYERKARTPROTOTYPE.tscn" id="4_8f312"]
+[ext_resource type="PackedScene" uid="uid://c234sbpgacxub" path="res://PlayerKart/PLAYERKARTPROTOTYPE.tscn" id="4_8f312"]
 [ext_resource type="Shader" path="res://Shaders/PicoPixel.gdshader" id="4_yi8s1"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_utsgx"]
@@ -72,18 +72,18 @@ handle_input_locally = false
 size = Vector2i(1152, 648)
 render_target_update_mode = 4
 
-[node name="CamTarget" type="Marker3D" parent="Preview/SubViewportContainer/SubViewport"]
-transform = Transform3D(-0.999999, 0, -1.50996e-07, 0, 1, 0, 1.50996e-07, 0, -0.999999, 6.27572, 15.8997, -15.4502)
+[node name="PlayerKartPrototype" parent="Preview/SubViewportContainer/SubViewport" instance=ExtResource("4_8f312")]
+transform = Transform3D(0.610767, 0, 0.79181, 0, 1, 0, -0.79181, 0, 0.610767, -83.9379, 19.5881, -169.957)
+
+[node name="CamTarget" type="Marker3D" parent="Preview/SubViewportContainer/SubViewport/PlayerKartPrototype"]
+transform = Transform3D(-0.999999, 0, -1.49012e-07, 0, 1, 0, 1.49012e-07, 0, -0.999999, 0.0320206, 1.5561, -1.4622)
 gizmo_extents = 4.65
 script = ExtResource("3_b0dj6")
 enabled = false
-playerTarget = NodePath("../PlayerKartPrototype")
-
-[node name="PlayerKartPrototype" parent="Preview/SubViewportContainer/SubViewport" instance=ExtResource("4_8f312")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.24371, 14.3436, -13.988)
+playerTarget = NodePath("..")
 
 [node name="Camera" parent="Preview/SubViewportContainer/SubViewport" instance=ExtResource("2_rpunu")]
 transform = Transform3D(-0.027152, -0.185433, -0.982282, 0.00240327, 0.982629, -0.185565, 0.999628, -0.00739912, -0.0262347, -0.233498, 113.017, 13.4176)
-target = NodePath("../CamTarget")
-speed = 7.0
+target = NodePath("../PlayerKartPrototype/CamTarget")
+speed = 4.0
 enabled = true

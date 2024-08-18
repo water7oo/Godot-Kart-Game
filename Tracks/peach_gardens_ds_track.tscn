@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3 uid="uid://dj50qckk5lx80"]
+
+[ext_resource type="PackedScene" uid="uid://bp1v5m8dnlm0v" path="res://Tracks/PeachGardensDsTrack.blend" id="1_lwmgd"]
+[ext_resource type="Material" uid="uid://tw57ogy135bv" path="res://Materials/Track1.tres" id="2_wi2la"]
+
+[node name="PeachGardensDsTrack" instance=ExtResource("1_lwmgd")]
+
+[node name="polygon35" parent="Armature/Skeleton3D" index="0"]
+material_override = ExtResource("2_wi2la")
