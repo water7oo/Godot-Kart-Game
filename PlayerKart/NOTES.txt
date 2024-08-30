@@ -1,0 +1,10 @@
+Debug the steering wheels current rotation, and try and restrict the opposite 
+way rotation when steering the opposite direction while drifting
+
+Work on edge detection shader
+
+Grab normal data from detected ground and have kart orient to the sum of the normals
+
+Reduce camera rotation speed
+
+Prevent or add

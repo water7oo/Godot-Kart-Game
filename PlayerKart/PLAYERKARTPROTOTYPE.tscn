@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://bw6ni2fvfq41r" path="res://Particles/Drifting_Dust.tscn" id="5_fbn2b"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_j3xoh"]
-bounce = 0.5
+rough = true
 
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_qsmfy"]
 points = PackedVector3Array(-2.01138, 0.148049, 3.32277, 1.96611, 1.4938, 1.44904, 1.58262, 1.68819, 3.32277, -1.49777, 2.54398, -4.20609, 1.24021, 0.490459, -4.89131, 1.58262, 0.148049, 5.20686, 1.41141, 2.54398, -4.37766, -1.66897, 1.68819, 3.15227, -1.32656, 0.490459, -4.89131, 2.097, 0.240039, -0.691221, -0.128126, 0.490459, 5.89209, -1.84018, 1.85939, -4.54924, -2.02404, 0.2334, -0.697858, 1.75382, 2.37277, -4.20609, 0.995877, 0.2334, -2.92377, -1.49777, 0.148049, 5.20686, 0.555387, 1.34601, -5.06289, -0.299331, 1.68819, 3.66592, -1.84018, 2.37277, -4.03559, -0.984151, 2.37277, -4.71974, 1.75382, 1.51698, -4.54924, 1.24021, 2.54398, -3.86402, 2.097, 0.240039, 1.51943, -1.49777, 0.490459, 5.20686, -0.984151, 0.490459, -5.06289, -1.88083, 1.4938, 1.44904, -1.15536, 2.54398, -3.86402, -1.32656, 1.68819, 3.49542, -0.299331, 0.148049, 5.89209, 0.212977, 0.490459, 5.89209, 0.897796, 2.37277, -4.71974, -1.84018, 1.51698, -4.54924)
@@ -299,20 +299,20 @@ shadow_mesh = SubResource("ArrayMesh_44ldy")
 [sub_resource type="SphereMesh" id="SphereMesh_ftcsj"]
 
 [node name="PlayerKartPrototype" type="VehicleBody3D"]
-axis_lock_angular_x = true
-axis_lock_angular_z = true
 mass = 5.0
 physics_material_override = SubResource("PhysicsMaterial_j3xoh")
 steering = 3.14159
 script = ExtResource("1_2a7lg")
-Initial_max_steer = 0.3
-MAX_STEER = 0.3
+Initial_max_steer = 0.25
+Initial_max_speed = 75
 MAX_SPEED = 75
-DRIFT_STEER = 0.35
-ENGINE_POWER = 95
-hopPower = 70
+DRIFT_STEER = 0.4
+BOOST_ENGINE_POWER = 150
+ENGINE_POWER = 150
+hopPower = 60
 gravity = 30
 torquePower = 0
+boostPower = 1000
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 0.888785, 0, 1.19209e-07, 0)
@@ -432,7 +432,7 @@ transform = Transform3D(9.455, 0, 0, 0, 4.829, 0, 0, 0, 9.455, 1.57358, 1.47042,
 target_position = Vector3(0, -0.465, 0)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(2.17, 0, 0, 0, 2.17, 0, 0, 0, 2.17, 0, 2.73775, -0.657386)
+transform = Transform3D(2.17, 0, 0, 0, 2.17, 0, 0, 0, 2.17, 0, 2.45619, -0.657386)
 material_override = ExtResource("2_w85gl")
 mesh = SubResource("SphereMesh_ftcsj")
 

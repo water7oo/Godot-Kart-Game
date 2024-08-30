@@ -18,15 +18,22 @@ var playerLook = camera.get_node("SpringArmPivot/MeshInstance3D")
 @onready var Wheel3 = $VehicleWheel3D3
 @onready var Wheel4 = $VehicleWheel3D4
 
-@export var Initial_max_steer = 0.4
+@export var Initial_max_steer = 0.1
 @export var Initial_max_speed = 70
-@export var MAX_STEER = 0.4
+@export var MAX_STEER = 0.1
 @export var MAX_SPEED = 50
-@export var DRIFT_STEER = 0.9
+@export var DRIFT_STEER = 1.5
+@export var MAX_SPEED_BOOST = 100
+@export var Initial_engine_power = 100
+@export var BOOST_ENGINE_POWER = 200
 @export var ENGINE_POWER = 100
 @export var hopPower = 100
 @export var gravity = 20
 @export var torquePower = 100
+@export var boostPower = 20
+@export var boost_timer = 1
+var is_boosting = false
+var boostDuration = 5
 var max_rotation_z = 1
 var max_rotation_x = 1
 
@@ -41,6 +48,8 @@ var was_in_air = false
 var drift_direction = 0
 var counter_steer_strength = 20
 var hopCount = 0
+var driftRight = false
+var driftLeft = false
 
 # Drift parameters
 var is_drifting: bool = false
@@ -48,10 +57,10 @@ var drift_progress: float = 0.0
 var drift_duration: float = 1000 # Time to fully drift (in seconds)
 
 # Friction slip values
-var normal_friction_slip_front: float = 100
-var normal_friction_slip_back: float = 100.0
+var normal_friction_slip_front: float = 10
+var normal_friction_slip_back: float = 10.0
 var drift_friction_slip_front: float = 0
-var drift_friction_slip_back: float = 50.0
+var drift_friction_slip_back: float = 0.0
 
 func _ready():
 	speedDebug.value = linear_velocity.z
@@ -62,6 +71,7 @@ func _physics_process(delta):
 	
 	_proccess_movement(delta)
 	_proccess_drifting(delta)
+	_proccess_boost(delta)
 	rotationLimit(delta)
 	particles(delta)
 
@@ -96,7 +106,7 @@ func _proccess_movement(delta):
 	
 	set_steering(steering * MAX_STEER)
 	
-	var engine_force = Input.get_axis("move_brake", "move_gas") * ENGINE_POWER 
+	var engine_force = Input.get_axis("move_brake", "move_gas") * Initial_engine_power
 	
 	var current_speed = linear_velocity.length()
 	
@@ -139,56 +149,58 @@ func particles(delta):
 
 
 func _proccess_drifting(delta):
+	
+	#print(Wheel1.steering, Wheel2.steering)
 	#if Input.is_action_just_pressed("move_drift") && isOnGround && hopCount == 0:
 		#apply_central_impulse(Vector3(0,hopPower,0))
-		#axis_lock_angular_z = true
+		##axis_lock_angular_z = true
 		#was_in_air = true
 		#isOnGround = false
 		#hopCount = 1
 		#print(hopCount)
 	#else:
 		#hopCount = 0
-		#print(hopCount)
+	
+	
+	#if is_drifting:
+		#print("drifting")
+		#Wheel3.use_as_steering = true
+		#Wheel4.use_as_steering = true
+	#else:
+		#Wheel3.use_as_steering = false
+		#Wheel4.use_as_steering = false
 	
 	#print(Wheel1.wheel_friction_slip)
-	if Input.is_action_pressed("move_drift") && isOnGround && linear_velocity.length() >= 50 && Input.is_action_pressed("move_gas"):
-		#await get_tree().create_timer(1).timeout
-		
+	if Input.is_action_pressed("move_drift") && isOnGround && linear_velocity.length() >= (MAX_SPEED - 20) && Input.is_action_pressed("move_gas"):
+		#await get_tree().create_timer(.5).timeout
 		
 		if Input.is_action_pressed("move_left") && isOnGround:
-			if drift_direction != -1:
-				MAX_STEER = DRIFT_STEER
-				drift_progress += delta / drift_duration
-				drift_progress = min(drift_progress, 1.0)
-				apply_torque_impulse(Vector3(0, torquePower, 0))
-				print("Drifting Left")
-				is_drifting = true
-				drift_direction = -1
-				
-			if drift_direction == -1 and Input.is_action_pressed("move_right"):
-				MAX_STEER -= delta * -counter_steer_strength
-				print("Counter-steering Right")
-				print(MAX_STEER)
-			else:
-				MAX_STEER = Initial_max_steer
+			MAX_STEER = DRIFT_STEER
+			drift_progress += delta / drift_duration
+			drift_progress = min(drift_progress, 1.0)
+			is_drifting = true
+			driftRight = true
 			
-		
+			#if driftRight:
+				#print("drift right while left")
+				#MAX_STEER = Initial_max_steer
+			#else:
+				#MAX_STEER = DRIFT_STEER
+			
 		if Input.is_action_pressed("move_right") && isOnGround:
-			if drift_direction != 1:
-				MAX_STEER = DRIFT_STEER
-				drift_progress += delta / drift_duration
-				drift_progress = min(drift_progress, 1.0)
-				apply_torque_impulse(Vector3(0, -torquePower, 0))
-				print("Drifting Right")
-				is_drifting = true
-				drift_direction = 1
+			MAX_STEER = DRIFT_STEER
+			drift_progress += delta / drift_duration
+			drift_progress = min(drift_progress, 1.0)
+			is_drifting = true
+			driftLeft = true
+			
+			#if driftLeft:
+				#print("drift left while right")
+				#MAX_STEER = Initial_max_steer
+			#else:
+				#MAX_STEER = DRIFT_STEER
+
 		
-			if drift_direction == 1 and Input.is_action_pressed("move_left"):
-				MAX_STEER -= delta * -counter_steer_strength
-				print("Counter-steering Left")
-				print(MAX_STEER)
-			else:
-				MAX_STEER = Initial_max_steer
 	else:
 		MAX_STEER = Initial_max_steer
 		drift_progress -= delta / drift_duration
@@ -212,4 +224,33 @@ func _proccess_drifting(delta):
 	physics_material_override.friction = lerp(1.0, 0.0, drift_progress)
 		
 
+func _proccess_boost(delta):
+	print(Wheel1.steering, Wheel2.steering)
+	if Input.is_action_just_pressed("boost_debug") && !is_boosting:
+		print("BOOSTING")
+		boost_timer = boostDuration
+		is_boosting = true
+		MAX_SPEED = MAX_SPEED_BOOST
+		ENGINE_POWER = BOOST_ENGINE_POWER
+		
+		if boost_timer <= 0:
+			MAX_SPEED = Initial_max_speed
+			boost_timer = 1
+			ENGINE_POWER = Initial_engine_power
+	if is_boosting:
+			# Reduce the boost timer by delta time
+			boost_timer -= delta
+			var forward_direction = global_transform.basis.z
+			apply_force(forward_direction.normalized() * boostPower)
 
+			if boost_timer <= 0:
+				# Stop boosting
+				is_boosting = false
+				MAX_SPEED = Initial_max_speed
+				ENGINE_POWER = Initial_engine_power
+				boost_timer = 0
+
+	else:
+		# Set to initial speed when not boosting
+		MAX_SPEED = Initial_max_speed
+		ENGINE_POWER = Initial_engine_power
