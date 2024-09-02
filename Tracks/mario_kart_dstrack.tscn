@@ -16,4 +16,5 @@ material_override = ExtResource("2_s2oh0")
 [node name="StaticBody3D" type="StaticBody3D" parent="mario_course" index="0"]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="mario_course/StaticBody3D" index="0"]
+visible = false
 shape = SubResource("ConcavePolygonShape3D_5giiy")

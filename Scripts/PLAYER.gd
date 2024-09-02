@@ -1,4 +1,5 @@
 extends VehicleBody3D
+@onready var Camera = get_node("/root/Camera")
 
 var camera = preload("res://PlayerKart/camera.tscn").instantiate()
 var spring_arm_pivot = camera.get_node("SpringArmPivot")
@@ -54,7 +55,7 @@ var driftLeft = false
 # Drift parameters
 var is_drifting: bool = false
 var drift_progress: float = 0.0
-var drift_duration: float = 1000 # Time to fully drift (in seconds)
+var drift_duration: float = 5 # Time to fully drift (in seconds)
 
 # Friction slip values
 var normal_friction_slip_front: float = 10
@@ -63,14 +64,13 @@ var drift_friction_slip_front: float = 0
 var drift_friction_slip_back: float = 0.0
 
 func _ready():
-	speedDebug.value = linear_velocity.z
 	pass # Replace with function body.
 
 
 func _physics_process(delta):
-	
+	speedDebug.value = linear_velocity.length()
 	_proccess_movement(delta)
-	_proccess_drifting(delta)
+	_process_drifting(delta)
 	_proccess_boost(delta)
 	rotationLimit(delta)
 	particles(delta)
@@ -140,92 +140,94 @@ func particles(delta):
 	
 	
 	if particle_emitter1 && particle_emitter2:
-		if isOnGround and is_drifting:
+		if isOnGround && is_drifting:
 			particle_emitter1.set_emitting(true)
 			particle_emitter2.set_emitting(true)
+				
 		else:
 			particle_emitter1.set_emitting(false)
 			particle_emitter2.set_emitting(false)
 
 
-func _proccess_drifting(delta):
-	
-	#print(Wheel1.steering, Wheel2.steering)
+func _process_drifting(delta):
 	#if Input.is_action_just_pressed("move_drift") && isOnGround && hopCount == 0:
 		#apply_central_impulse(Vector3(0,hopPower,0))
-		##axis_lock_angular_z = true
+		#axis_lock_angular_z = true
 		#was_in_air = true
 		#isOnGround = false
 		#hopCount = 1
 		#print(hopCount)
 	#else:
 		#hopCount = 0
-	
-	
-	#if is_drifting:
-		#print("drifting")
-		#Wheel3.use_as_steering = true
-		#Wheel4.use_as_steering = true
-	#else:
-		#Wheel3.use_as_steering = false
-		#Wheel4.use_as_steering = false
-	
-	#print(Wheel1.wheel_friction_slip)
-	if Input.is_action_pressed("move_drift") && isOnGround && linear_velocity.length() >= (MAX_SPEED - 20) && Input.is_action_pressed("move_gas"):
-		#await get_tree().create_timer(.5).timeout
+		#print(hopCount)
+		
+	if Input.is_action_pressed("move_drift") && isOnGround && Input.is_action_pressed("move_gas"):
+		#await get_tree().create_timer(1).timeout
 		
 		if Input.is_action_pressed("move_left") && isOnGround:
-			MAX_STEER = DRIFT_STEER
-			drift_progress += delta / drift_duration
-			drift_progress = min(drift_progress, 1.0)
+			print("LEFT DRIFT")
+			if driftRight:  
+				drift_progress -= delta / drift_duration
+			else:  
+				drift_progress += delta / drift_duration
 			is_drifting = true
-			driftRight = true
-			
-			#if driftRight:
-				#print("drift right while left")
-				#MAX_STEER = Initial_max_steer
-			#else:
-				#MAX_STEER = DRIFT_STEER
-			
-		if Input.is_action_pressed("move_right") && isOnGround:
-			MAX_STEER = DRIFT_STEER
-			drift_progress += delta / drift_duration
-			drift_progress = min(drift_progress, 1.0)
-			is_drifting = true
-			driftLeft = true
-			
-			#if driftLeft:
-				#print("drift left while right")
-				#MAX_STEER = Initial_max_steer
-			#else:
-				#MAX_STEER = DRIFT_STEER
 
-		
+		elif Input.is_action_pressed("move_right") && isOnGround:
+			print("RIGHT DRIFT")
+			if driftLeft:  
+				drift_progress -= delta / drift_duration
+			else:  
+				drift_progress += delta / drift_duration
+			is_drifting = true
+
+		else:
+			# If no direction input is pressed, stop drifting
+			stop_drifting(delta)
+
+		# Clamp drift progress between 0 and a reduced maximum value to prevent spinning out
+		drift_progress = clamp(drift_progress, 0.0, 0.8) 
+
+		# If we're drifting, maintain the drift steering value
+		if drift_progress > 0.0:
+			MAX_STEER = lerp(Initial_max_steer, DRIFT_STEER, drift_progress)
+		else:
+			# Keep the MAX_STEER at DRIFT_STEER if the drift is in progress
+			MAX_STEER = DRIFT_STEER
+
+		# Slightly increase rear wheel friction to prevent spin-out
+		var rear_friction_boost = lerp(normal_friction_slip_back, drift_friction_slip_back * 12, drift_progress)
+		Wheel3.wheel_friction_slip = rear_friction_boost
+		Wheel4.wheel_friction_slip = rear_friction_boost
+
+		# Interpolate X and Z velocity to 5 when drifting
+		#linear_velocity.x = lerp(linear_velocity.x, 5, drift_progress)
+		#linear_velocity.z = lerp(linear_velocity.z, 5, drift_progress)
+
 	else:
-		MAX_STEER = Initial_max_steer
-		drift_progress -= delta / drift_duration
-		drift_progress = max(drift_progress, 0.0)
-		is_drifting = false
-		
-		Wheel1.wheel_friction_slip = normal_friction_slip_front
-		Wheel2.wheel_friction_slip = normal_friction_slip_front
-		Wheel3.wheel_friction_slip = normal_friction_slip_back
-		Wheel4.wheel_friction_slip = normal_friction_slip_back
-		physics_material_override.friction = 1
-		
-		
-	var target_friction_slip_front = lerp(normal_friction_slip_front, drift_friction_slip_front, drift_progress)
-	var target_friction_slip_back = lerp(normal_friction_slip_back, drift_friction_slip_back, drift_progress)
-	Wheel1.wheel_friction_slip = target_friction_slip_front
-	Wheel2.wheel_friction_slip = target_friction_slip_front
-	Wheel3.wheel_friction_slip = target_friction_slip_back
-	Wheel4.wheel_friction_slip = target_friction_slip_back
-	# Optionally interpolate material friction if needed
-	physics_material_override.friction = lerp(1.0, 0.0, drift_progress)
-		
+		# Stop drifting if drift button or directional input is released
+		stop_drifting(delta)
+
+		# Interpolate X and Z velocity back to 0 when not drifting
+		#linear_velocity.x = lerp(linear_velocity.x, 0, delta * 5.0)  # Adjust interpolation speed as needed
+		#linear_velocity.z = lerp(linear_velocity.z, 0, delta * 5.0)  # Adjust interpolation speed as needed
+
+
+
+func stop_drifting(delta):
+	MAX_STEER = lerp(MAX_STEER, Initial_max_steer, delta * 5)  # Smooth transition back to normal steering
+	drift_progress -= delta / drift_duration
+	drift_progress = max(drift_progress, 0.0)
+	is_drifting = false
+
+	# Reset friction values
+	Wheel1.wheel_friction_slip = normal_friction_slip_front
+	Wheel2.wheel_friction_slip = normal_friction_slip_front
+	Wheel3.wheel_friction_slip = normal_friction_slip_back
+	Wheel4.wheel_friction_slip = normal_friction_slip_back
+	physics_material_override.friction = 1
+
 
 func _proccess_boost(delta):
-	print(Wheel1.steering, Wheel2.steering)
 	if Input.is_action_just_pressed("boost_debug") && !is_boosting:
 		print("BOOSTING")
 		boost_timer = boostDuration

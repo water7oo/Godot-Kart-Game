@@ -27,7 +27,10 @@ func followTarget(delta):
 		return
 
 	var new_global_transform = global_transform.interpolate_with(target_node.global_transform, speed * delta)
+	var new_rotation = global_transform.basis.slerp(target_node.global_transform.basis, rotation_speed * delta)
+	
 	global_transform = new_global_transform
+	global_transform.basis = new_rotation
 	
 	#Assign rotation variable for camera follow
 	
