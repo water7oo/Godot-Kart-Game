@@ -1,10 +1,12 @@
 extends VehicleBody3D
-@onready var Camera = get_node("/root/Camera")
 
-var camera = preload("res://PlayerKart/camera.tscn").instantiate()
-var spring_arm_pivot = camera.get_node("SpringArmPivot")
-var spring_arm = camera.get_node("SpringArmPivot/SpringArm3D")
-var playerLook = camera.get_node("SpringArmPivot/MeshInstance3D")
+#@onready var autoloadCamera = get_node("/root/Camera")
+
+var camera_preload = preload("res://PlayerKart/camera.tscn").instantiate()
+var camera = camera_preload.get_node("SpringArmPivot/SpringArm3D/Camera3D")
+var spring_arm_pivot = camera_preload.get_node("SpringArmPivot")
+var spring_arm = camera_preload.get_node("SpringArmPivot/SpringArm3D")
+var playerLook = camera_preload.get_node("SpringArmPivot/MeshInstance3D")
 
 @onready var drift_dust = get_tree().get_nodes_in_group("drift_dust")
 
@@ -33,6 +35,9 @@ var playerLook = camera.get_node("SpringArmPivot/MeshInstance3D")
 @export var torquePower = 100
 @export var boostPower = 20
 @export var boost_timer = 1
+@export var speed_lerp_factor := 0.0 
+@export var BOOST_SPEED_TRANSITION_RATE = 12
+@export var BRAKE_FORCE = 10
 var is_boosting = false
 var boostDuration = 5
 var max_rotation_z = 1
@@ -42,7 +47,7 @@ var max_rotation_x = 1
 @export var joystick_sensitivity = .005
 @export var cam_target : Node3D
 @onready var mass_center_node = $CenterOfMass
-@onready var speedDebug = $SpeedDebug
+@export var speedDebug : Node
 var can_jump = true
 var isOnGround = false
 var was_in_air = false
@@ -63,15 +68,29 @@ var normal_friction_slip_back: float = 10.0
 var drift_friction_slip_front: float = 0
 var drift_friction_slip_back: float = 0.0
 
+var normal_fov = 20 # Normal FOV value
+var boost_fov = 90 # FOV value when boosting
+var fov_transition_speed = 1.0 # How quickly the FOV changes
+
 func _ready():
+	speedDebug = $SpeedDebug
 	pass # Replace with function body.
 
 
 func _physics_process(delta):
-	speedDebug.value = linear_velocity.length()
+	if speedDebug != null:
+		speedDebug.value = linear_velocity.length()
+	else:
+		print("speedDebug node is not initialized or found!")
+		
+		
 	_proccess_movement(delta)
 	_process_drifting(delta)
-	_proccess_boost(delta)
+	#_proccess_boost(delta)
+	
+	if Input.is_action_just_pressed("boost_debug") && !is_boosting && Input.is_action_pressed("move_gas"):
+		print("NEW BOOST FUNCTIONING")
+		_playerBoost(delta)
 	rotationLimit(delta)
 	particles(delta)
 
@@ -96,8 +115,7 @@ func rotationLimit(delta):
 		isOnGround = true
 		
 func _proccess_movement(delta):
-	#print((linear_velocity.z + linear_velocity.y + linear_velocity.x)/3)
-	#print(linear_velocity.length())
+	print(linear_velocity.length())
 	var right_input = Input.get_action_strength("move_right")
 	var left_input = Input.get_action_strength("move_left")
 
@@ -218,7 +236,6 @@ func stop_drifting(delta):
 	drift_progress -= delta / drift_duration
 	drift_progress = max(drift_progress, 0.0)
 	is_drifting = false
-
 	# Reset friction values
 	Wheel1.wheel_friction_slip = normal_friction_slip_front
 	Wheel2.wheel_friction_slip = normal_friction_slip_front
@@ -227,32 +244,94 @@ func stop_drifting(delta):
 	physics_material_override.friction = 1
 
 
-func _proccess_boost(delta):
-	if Input.is_action_just_pressed("boost_debug") && !is_boosting:
+func _playerBoost(delta):
 		print("BOOSTING")
-		boost_timer = boostDuration
+		boost_timer = float(boostDuration)  # Ensure boost timer is a float
 		is_boosting = true
-		MAX_SPEED = MAX_SPEED_BOOST
-		ENGINE_POWER = BOOST_ENGINE_POWER
-		
-		if boost_timer <= 0:
-			MAX_SPEED = Initial_max_speed
-			boost_timer = 1
-			ENGINE_POWER = Initial_engine_power
-	if is_boosting:
+
+		# Set boosted maximum speed and engine power
+		MAX_SPEED = float(MAX_SPEED_BOOST)  # Temporarily set max speed to boosted speed
+		ENGINE_POWER = float(BOOST_ENGINE_POWER)  # Temporarily increase engine power
+
+		# Adjust camera FOV for boost effect
+		camera.fov = 1.0
+
+		# Reset the interpolation factor for a smooth transition
+		speed_lerp_factor = 0.0
+
+		if is_boosting:
 			# Reduce the boost timer by delta time
 			boost_timer -= delta
-			var forward_direction = global_transform.basis.z
-			apply_force(forward_direction.normalized() * boostPower)
 
+			# Calculate forward direction
+			var forward_direction = global_transform.basis.z.normalized()
+
+			# Smoothly interpolate speed towards boosted speed
+			speed_lerp_factor = min(speed_lerp_factor + delta * BOOST_SPEED_TRANSITION_RATE, 1.0)  # Gradually increase the lerp factor
+			var target_speed = forward_direction * float(boostPower)
+			linear_velocity = linear_velocity.lerp(target_speed, speed_lerp_factor)  # Interpolate towards target speed
+
+			# Allow linear velocity to exceed normal max speed while boosting
+			if linear_velocity.length() > Initial_max_speed:
+				linear_velocity = linear_velocity.normalized() * max(linear_velocity.length(), MAX_SPEED)
+
+			# If the boost duration has ended
 			if boost_timer <= 0:
 				# Stop boosting
 				is_boosting = false
-				MAX_SPEED = Initial_max_speed
-				ENGINE_POWER = Initial_engine_power
+				MAX_SPEED = float(Initial_max_speed)  # Reset to initial max speed
+				ENGINE_POWER = float(Initial_engine_power)  # Reset engine power
 				boost_timer = 0
+
+				# Reset camera FOV to normal
+				camera.fov = 100
+
+		else:
+			# Set to initial speed when not boosting
+			MAX_SPEED = float(Initial_max_speed)  # Convert to float
+			ENGINE_POWER = float(Initial_engine_power)  # Convert to float
+
+	
+	
+
+func _proccess_boost(delta):
+	if Input.is_action_just_pressed("boost_debug") && !is_boosting:
+		print("BOOSTING")
+		boost_timer = float(boostDuration)  # Ensure boost timer is a float
+		is_boosting = true
+		MAX_SPEED = float(MAX_SPEED_BOOST)  # Convert MAX_SPEED_BOOST to float
+		ENGINE_POWER = float(BOOST_ENGINE_POWER)  # Convert BOOST_ENGINE_POWER to float
+
+		# Adjust camera FOV for boost
+		camera.fov = 1.0
+
+		# Reset the interpolation factor for a smooth transition
+		speed_lerp_factor = 0.0
+
+	if is_boosting:
+		# Reduce the boost timer by delta time
+		boost_timer -= delta
+
+		# Calculate forward direction
+		var forward_direction = global_transform.basis.z.normalized()
+
+		# Smoothly interpolate speed towards boosted speed
+		speed_lerp_factor = min(speed_lerp_factor + delta * BOOST_SPEED_TRANSITION_RATE, 1.0)  # Gradually increase the lerp factor
+		var target_speed = forward_direction * float(boostPower)
+		linear_velocity = linear_velocity.lerp(target_speed, speed_lerp_factor)  # Interpolate towards target speed
+		
+		if boost_timer <= 0:
+			# Stop boosting
+			is_boosting = false
+			MAX_SPEED = float(Initial_max_speed)  # Convert to float
+			ENGINE_POWER = float(Initial_engine_power)  # Convert to float
+			boost_timer = 0
+
+			# Reset camera FOV to normal
+			camera.fov = 100
 
 	else:
 		# Set to initial speed when not boosting
-		MAX_SPEED = Initial_max_speed
-		ENGINE_POWER = Initial_engine_power
+		MAX_SPEED = float(Initial_max_speed)  # Convert to float
+		ENGINE_POWER = float(Initial_engine_power)  # Convert to float
+

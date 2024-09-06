@@ -1,7 +1,7 @@
 [gd_resource type="ShaderMaterial" load_steps=4 format=3 uid="uid://dbyby88f0slxu"]
 
 [ext_resource type="Shader" path="res://Shaders/PS1_Player_VertexWobbling.gdshader" id="1_dt3qt"]
-[ext_resource type="Texture2D" uid="uid://ddelwjoyxuelf" path="res://Textures/kenney_prototype_textures/light/texture_13.png" id="2_7lmtk"]
+[ext_resource type="Texture2D" uid="uid://bsbog7ybh3xoi" path="res://Textures/kenney_prototype_textures/light/texture_09.png" id="2_mcb1s"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_febd3"]
 
@@ -9,8 +9,8 @@
 render_priority = 0
 next_pass = SubResource("ShaderMaterial_febd3")
 shader = ExtResource("1_dt3qt")
-shader_parameter/affine_mapping = false
-shader_parameter/alpha_scissor = 0.5
-shader_parameter/jitter = 0.491
+shader_parameter/affine_mapping = true
+shader_parameter/alpha_scissor = 0.385
+shader_parameter/jitter = 0.434
 shader_parameter/resolution = Vector2i(320, 240)
-shader_parameter/albedo = ExtResource("2_7lmtk")
+shader_parameter/albedo = ExtResource("2_mcb1s")

@@ -14,10 +14,6 @@ config/name="Kart Game"
 run/main_scene="res://Game/track_1.tscn"
 config/features=PackedStringArray("4.2", "Forward Plus")
 
-[autoload]
-
-Camera="*res://PlayerKart/camera.gd"
-
 [editor]
 
 movie_writer/movie_file="C:/Users/scott/OneDrive/Desktop/Desktop Stuff/Timelapses_Recordings/GODOT_GAME_RECORDINGS/kartgame2.avi"

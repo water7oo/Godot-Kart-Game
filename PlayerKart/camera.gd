@@ -1,5 +1,7 @@
 extends Node3D
 
+#@onready var player = get_node("/root/Player")
+
 #Make cam target script that follows players position
 @export var target: NodePath
 @export var speed := 1.0
@@ -8,6 +10,7 @@ extends Node3D
 @export var spring_arm_pivot: Node3D
 @onready var camera = $SpringArmPivot/SpringArm3D/Camera3D
 var cam_lerp_speed = .005
+@onready var cam_fov = camera.fov
 
 var original_global_transform: Transform3D
 var target_node: Node3D
@@ -19,7 +22,9 @@ func _ready():
 func _physics_process(delta):
 	followTarget(delta)
 
-
+#func playerBoosting(delta):
+	#if player.is_boosting:
+		#print("Camera recognizr boosting")
 
 
 func followTarget(delta):

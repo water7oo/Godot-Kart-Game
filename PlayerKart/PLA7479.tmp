@@ -301,7 +301,7 @@ shadow_mesh = SubResource("ArrayMesh_44ldy")
 [node name="PlayerKartPrototype" type="VehicleBody3D" node_paths=PackedStringArray("speedDebug")]
 axis_lock_angular_x = true
 axis_lock_angular_z = true
-mass = 4.0
+mass = 5.0
 physics_material_override = SubResource("PhysicsMaterial_j3xoh")
 center_of_mass_mode = 1
 can_sleep = false
@@ -311,15 +311,12 @@ Initial_max_speed = 75
 MAX_STEER = 0.3
 MAX_SPEED = 90
 DRIFT_STEER = 1.0
-MAX_SPEED_BOOST = 150
 BOOST_ENGINE_POWER = 150
 ENGINE_POWER = 150
 hopPower = 40
 gravity = 30
 torquePower = 0
-boostPower = 300
-boost_timer = 10
-BOOST_SPEED_TRANSITION_RATE = 5
+boostPower = 50
 BRAKE_FORCE = 500
 speedDebug = NodePath("SpeedDebug")
 

@@ -79,8 +79,9 @@ handle_input_locally = false
 size = Vector2i(1152, 648)
 render_target_update_mode = 4
 
-[node name="PlayerKartPrototype" parent="Preview/SubViewportContainer/SubViewport" instance=ExtResource("4_8f312")]
-transform = Transform3D(-0.0959848, 0, 0.995383, 0, 1, 0, -0.995383, 0, -0.0959848, -70.3025, 29.9506, -59.0049)
+[node name="PlayerKartPrototype" parent="Preview/SubViewportContainer/SubViewport" node_paths=PackedStringArray("cam_target") instance=ExtResource("4_8f312")]
+transform = Transform3D(-0.0959848, 0, 0.995383, 0, 1, 0, -0.995383, 0, -0.0959848, -70.302, 17.119, -59.005)
+cam_target = NodePath("../Camera")
 
 [node name="CamTarget" type="Marker3D" parent="Preview/SubViewportContainer/SubViewport/PlayerKartPrototype"]
 transform = Transform3D(-0.999999, 0, -1.49012e-07, 0, 1, 0, 1.49012e-07, 0, -0.999999, 0.0320168, 1.5561, -1.46219)
