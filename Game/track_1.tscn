@@ -1,10 +1,11 @@
-[gd_scene load_steps=11 format=3 uid="uid://bramde02kmtgl"]
+[gd_scene load_steps=12 format=3 uid="uid://bramde02kmtgl"]
 
+[ext_resource type="PackedScene" uid="uid://crxwucwgbbrhe" path="res://Tracks/DSDesertHills.tscn" id="1_6ea5u"]
 [ext_resource type="Texture2D" uid="uid://dl3j1ny70t032" path="res://Textures/kenney_prototype_textures/orange/texture_09.png" id="1_mrbgt"]
 [ext_resource type="PackedScene" uid="uid://dxbdmjmgua2h4" path="res://PlayerKart/camera.tscn" id="2_rpunu"]
 [ext_resource type="Script" path="res://Game/targetTOplayer.gd" id="3_b0dj6"]
+[ext_resource type="PackedScene" uid="uid://c234sbpgacxub" path="res://PlayerKart/PLAYERKARTPROTOTYPE.tscn" id="4_geoji"]
 [ext_resource type="Shader" path="res://Shaders/PicoPixel.gdshader" id="4_yi8s1"]
-[ext_resource type="PackedScene" uid="uid://co3dahc6ro6sh" path="res://PlayerKart/PLAYER.tscn" id="5_1s8hs"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_utsgx"]
 sky_top_color = Color(0.0156863, 0.470588, 0.745098, 1)
@@ -49,6 +50,9 @@ environment = SubResource("Environment_bejvm")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 7.87023, 0)
 
+[node name="Root Scene" parent="." instance=ExtResource("1_6ea5u")]
+transform = Transform3D(15.775, 0, 0, 0, 15.775, 0, 0, 0, 15.775, 279.215, -150.462, 0)
+
 [node name="CSGCombiner3D" type="CSGCombiner3D" parent="."]
 transform = Transform3D(88.151, 0, 0, 0, 49.13, 0, 0, 0, 135.444, 0, 0, 0)
 material_override = SubResource("StandardMaterial3D_k6bdy")
@@ -80,24 +84,41 @@ size = Vector2i(1152, 648)
 render_target_update_mode = 4
 
 [node name="fullView" type="Marker3D" parent="Preview/SubViewportContainer/SubViewport"]
-transform = Transform3D(0.0856525, 0.451329, -0.888237, -0.0433207, 0.892357, 0.449245, 0.995383, 3.72529e-09, 0.0959845, -114.702, 37.4699, -53.9134)
+transform = Transform3D(0.995383, 6.97287e-09, 0.0959845, -0.000316694, 0.999994, 0.00328323, -0.0959841, -0.00329867, 0.995377, -164.262, 37.4699, -53.9134)
 gizmo_extents = 4.65
 script = ExtResource("3_b0dj6")
 enabled = false
 
-[node name="Player" parent="Preview/SubViewportContainer/SubViewport" instance=ExtResource("5_1s8hs")]
-transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -70.472, 18.078, -58.897)
+[node name="PlayerKartPrototype" parent="Preview/SubViewportContainer/SubViewport" instance=ExtResource("4_geoji")]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, -140.944, 23.183, -117.794)
+ENGINE_POWER = null
+hopPower = null
+boost_timer = null
+speed_lerp_factor = null
+BOOST_SPEED_TRANSITION_RATE = null
+driftBoostTimer = null
+driftBoostTime = null
+mouse_sensitivity = null
+joystick_sensitivity = null
+counter_steer_strength = null
+DRIFT_INTERTIA = null
+MAX_DRIFT_ANGLE = null
+normal_friction_slip_front = null
+normal_friction_slip_back = null
+drift_friction_slip_front = null
+drift_friction_slip_back = null
 
-[node name="CamTarget" type="Marker3D" parent="Preview/SubViewportContainer/SubViewport/Player"]
-transform = Transform3D(-0.999999, 0, -8.74227e-08, 0, 1, 0, 8.74227e-08, 0, -0.999999, -0.000480652, 0.000494003, -0.00038147)
+[node name="CamTarget" type="Marker3D" parent="Preview/SubViewportContainer/SubViewport/PlayerKartPrototype"]
+transform = Transform3D(-0.999999, 0, 8.74227e-08, 0, 1, 0, -8.74227e-08, 0, -0.999999, 0.00038147, -0.000461578, -0.000480652)
 gizmo_extents = 4.65
 script = ExtResource("3_b0dj6")
-enabled = false
+target = NodePath("..")
+speed = 1000.0
+rotation_speed = 1000.0
 
 [node name="Camera" parent="Preview/SubViewportContainer/SubViewport" instance=ExtResource("2_rpunu")]
-transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, -163.541, 23.8197, 63.7233)
-top_level = true
-target = NodePath("../Player/CamTarget")
-speed = 2.0
-rotation_speed = 2.0
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -163.541, 23.8197, 63.7233)
+target = NodePath("../PlayerKartPrototype/CamTarget")
+speed = 10.0
+rotation_speed = 5.0
 enabled = true

@@ -28,7 +28,7 @@ func _physics_process(delta):
 
 
 func followTarget(delta):
-	if not enabled or not target_node:
+	if  !enabled ||  !target_node:
 		return
 
 	var new_global_transform = global_transform.interpolate_with(target_node.global_transform, speed * delta)

@@ -13,7 +13,7 @@ point_count = 3
 curve = SubResource("Curve_ehivv")
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_hgfhm"]
-gravity = Vector3(0, 9.8, 0)
+gravity = Vector3(0, 1, 0)
 damping_min = 5.0
 damping_max = 5.0
 scale_min = 2.0
