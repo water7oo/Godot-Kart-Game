@@ -34,14 +34,18 @@ var playerLook = camera_preload.get_node("SpringArmPivot/MeshInstance3D")
 @export var gravity = 20
 @export var torquePower = 100
 @export var boostPower = 20
-@export var boost_timer = 1
+@export var boost_timer = 0.0
 @export var speed_lerp_factor := 0.0 
 @export var BOOST_SPEED_TRANSITION_RATE = 12
 @export var BRAKE_FORCE = 10
+
+@export var driftBoostTimer = 0.0
 var is_boosting = false
-var boostDuration = 5
+var boostDuration = 1
 var max_rotation_z = 1
 var max_rotation_x = 1
+
+var driftBoostTime = 0.0
 
 @export var mouse_sensitivity = .005
 @export var joystick_sensitivity = .005
@@ -52,19 +56,24 @@ var can_jump = true
 var isOnGround = false
 var was_in_air = false
 var drift_direction = 0
-var counter_steer_strength = 20
+@export var counter_steer_strength = 1
 var hopCount = 0
 var driftRight = false
 var driftLeft = false
 
+@export var DRIFT_FORCE = 10
+@export var DRIFT_INTERTIA = 9000
+@export var MAX_DRIFT_ANGLE = 180
+
+
 # Drift parameters
 var is_drifting: bool = false
 var drift_progress: float = 0.0
-var drift_duration: float = 5 # Time to fully drift (in seconds)
+var drift_duration: float = 100 # Time to fully drift (in seconds)
 
 # Friction slip values
 var normal_friction_slip_front: float = 10
-var normal_friction_slip_back: float = 10.0
+var normal_friction_slip_back: float = 9.5
 var drift_friction_slip_front: float = 0
 var drift_friction_slip_back: float = 0.0
 
@@ -78,6 +87,9 @@ func _ready():
 
 
 func _physics_process(delta):
+	print('Wheel back 3:' + str(Wheel3.wheel_friction_slip), 'Wheel back 4:' + str(Wheel4.wheel_friction_slip), 'Wheel back 1:' + str(Wheel1.wheel_friction_slip), 'Wheel back 2:' + str(Wheel2.wheel_friction_slip))
+	print('MAX STEER' + str(MAX_STEER))
+	
 	if speedDebug != null:
 		speedDebug.value = linear_velocity.length()
 	else:
@@ -88,9 +100,19 @@ func _physics_process(delta):
 	_process_drifting(delta)
 	#_proccess_boost(delta)
 	
-	if Input.is_action_just_pressed("boost_debug") && !is_boosting && Input.is_action_pressed("move_gas"):
-		print("NEW BOOST FUNCTIONING")
+	#print("MAXIMUM SPEED: " + str(MAX_SPEED))
+	#print("BOOST TIMER: " + str(boost_timer))
+	#print(MAX_STEER)
+	
+	if Input.is_action_pressed("boost_debug") and !is_boosting and Input.is_action_pressed("move_gas"):
+		apply_torque(Vector3(70,70,70))
+		is_boosting = true
+		boost_timer = boostDuration  # Initialize the boost timer
 		_playerBoost(delta)
+	elif is_boosting:
+		_playerBoost(delta)
+		
+	
 	rotationLimit(delta)
 	particles(delta)
 
@@ -115,7 +137,6 @@ func rotationLimit(delta):
 		isOnGround = true
 		
 func _proccess_movement(delta):
-	print(linear_velocity.length())
 	var right_input = Input.get_action_strength("move_right")
 	var left_input = Input.get_action_strength("move_left")
 
@@ -168,170 +189,93 @@ func particles(delta):
 
 
 func _process_drifting(delta):
-	#if Input.is_action_just_pressed("move_drift") && isOnGround && hopCount == 0:
-		#apply_central_impulse(Vector3(0,hopPower,0))
-		#axis_lock_angular_z = true
-		#was_in_air = true
-		#isOnGround = false
-		#hopCount = 1
-		#print(hopCount)
-	#else:
-		#hopCount = 0
-		#print(hopCount)
-		
-	if Input.is_action_pressed("move_drift") && isOnGround && Input.is_action_pressed("move_gas"):
-		#await get_tree().create_timer(1).timeout
-		
-		if Input.is_action_pressed("move_left") && isOnGround:
-			print("LEFT DRIFT")
-			if driftRight:  
-				drift_progress -= delta / drift_duration
-			else:  
-				drift_progress += delta / drift_duration
-			is_drifting = true
+	if Input.is_action_pressed("move_drift") and isOnGround and Input.is_action_pressed("move_gas"):
+		driftBoostTimer += delta  # Start counting drift time
+		#print("DRIFT BOOST TIMER: " + str(driftBoostTimer))
 
-		elif Input.is_action_pressed("move_right") && isOnGround:
-			print("RIGHT DRIFT")
-			if driftLeft:  
-				drift_progress -= delta / drift_duration
-			else:  
-				drift_progress += delta / drift_duration
+		# Determine direction based on player input
+		var direction = Vector3(0, 0, 0)
+		if Input.is_action_pressed("move_left") and isOnGround:
+			direction = -transform.basis.x
 			is_drifting = true
-
+		elif Input.is_action_pressed("move_right") and isOnGround:
+			direction = transform.basis.x  # Right drift direction
+			is_drifting = true
 		else:
-			# If no direction input is pressed, stop drifting
 			stop_drifting(delta)
 
-		# Clamp drift progress between 0 and a reduced maximum value to prevent spinning out
-		drift_progress = clamp(drift_progress, 0.0, 0.8) 
+		# Apply a gradual force in the direction of the drift
+		if is_drifting:
+			var drift_force = direction.normalized() * DRIFT_FORCE * delta
+			apply_force(drift_force, Vector3(0, 1, 0))  # Apply force at the center of mass
+			var DRIFT_INERTIA = 100
 
-		# If we're drifting, maintain the drift steering value
-		if drift_progress > 0.0:
-			MAX_STEER = lerp(Initial_max_steer, DRIFT_STEER, drift_progress)
-		else:
-			# Keep the MAX_STEER at DRIFT_STEER if the drift is in progress
-			MAX_STEER = DRIFT_STEER
+			# Apply inertia and angular velocity to simulate sliding
+			var angular_velocity = rotation_degrees.y * delta * DRIFT_INERTIA
+			angular_velocity = clamp(angular_velocity, -MAX_DRIFT_ANGLE, MAX_DRIFT_ANGLE)
+			#angular_velocity_degrees.y += angular_velocity
 
-		# Slightly increase rear wheel friction to prevent spin-out
-		var rear_friction_boost = lerp(normal_friction_slip_back, drift_friction_slip_back * 12, drift_progress)
-		Wheel3.wheel_friction_slip = rear_friction_boost
-		Wheel4.wheel_friction_slip = rear_friction_boost
-
-		# Interpolate X and Z velocity to 5 when drifting
-		#linear_velocity.x = lerp(linear_velocity.x, 5, drift_progress)
-		#linear_velocity.z = lerp(linear_velocity.z, 5, drift_progress)
-
+			# Adjust friction based on drift progress
+			drift_progress += delta / drift_duration
+			drift_progress = clamp(drift_progress, 0.0, 1.0)
+			
+			var rear_friction = lerp(normal_friction_slip_back, drift_friction_slip_back, drift_progress)
+			Wheel3.wheel_friction_slip = rear_friction
+			Wheel4.wheel_friction_slip = rear_friction
+			
+			# Drift boost handling
+			if Input.is_action_just_released("move_drift"):
+				if driftBoostTimer >= 2:
+					is_boosting = true  # Start the boost
+					_playerBoost(delta)
+			else:
+				driftBoostTimer = 0.0  # Reset drift timer
 	else:
-		# Stop drifting if drift button or directional input is released
 		stop_drifting(delta)
-
-		# Interpolate X and Z velocity back to 0 when not drifting
-		#linear_velocity.x = lerp(linear_velocity.x, 0, delta * 5.0)  # Adjust interpolation speed as needed
-		#linear_velocity.z = lerp(linear_velocity.z, 0, delta * 5.0)  # Adjust interpolation speed as needed
-
 
 
 func stop_drifting(delta):
-	MAX_STEER = lerp(MAX_STEER, Initial_max_steer, delta * 5)  # Smooth transition back to normal steering
-	drift_progress -= delta / drift_duration
-	drift_progress = max(drift_progress, 0.0)
 	is_drifting = false
+	drift_progress = 0.0
+
 	# Reset friction values
-	Wheel1.wheel_friction_slip = normal_friction_slip_front
-	Wheel2.wheel_friction_slip = normal_friction_slip_front
 	Wheel3.wheel_friction_slip = normal_friction_slip_back
 	Wheel4.wheel_friction_slip = normal_friction_slip_back
 	physics_material_override.friction = 1
 
 
+
 func _playerBoost(delta):
-		print("BOOSTING")
-		boost_timer = float(boostDuration)  # Ensure boost timer is a float
-		is_boosting = true
+	if is_boosting && isOnGround:
+		boost_timer -= delta  # Decrease the boost timer
+		MAX_SPEED = MAX_SPEED_BOOST
+		ENGINE_POWER = BOOST_ENGINE_POWER
+		camera.fov = boost_fov
 
-		# Set boosted maximum speed and engine power
-		MAX_SPEED = float(MAX_SPEED_BOOST)  # Temporarily set max speed to boosted speed
-		ENGINE_POWER = float(BOOST_ENGINE_POWER)  # Temporarily increase engine power
-
-		# Adjust camera FOV for boost effect
-		camera.fov = 1.0
-
-		# Reset the interpolation factor for a smooth transition
-		speed_lerp_factor = 0.0
-
-		if is_boosting:
-			# Reduce the boost timer by delta time
-			boost_timer -= delta
-
-			# Calculate forward direction
-			var forward_direction = global_transform.basis.z.normalized()
-
-			# Smoothly interpolate speed towards boosted speed
-			speed_lerp_factor = min(speed_lerp_factor + delta * BOOST_SPEED_TRANSITION_RATE, 1.0)  # Gradually increase the lerp factor
-			var target_speed = forward_direction * float(boostPower)
-			linear_velocity = linear_velocity.lerp(target_speed, speed_lerp_factor)  # Interpolate towards target speed
-
-			# Allow linear velocity to exceed normal max speed while boosting
-			if linear_velocity.length() > Initial_max_speed:
-				linear_velocity = linear_velocity.normalized() * max(linear_velocity.length(), MAX_SPEED)
-
-			# If the boost duration has ended
-			if boost_timer <= 0:
-				# Stop boosting
-				is_boosting = false
-				MAX_SPEED = float(Initial_max_speed)  # Reset to initial max speed
-				ENGINE_POWER = float(Initial_engine_power)  # Reset engine power
-				boost_timer = 0
-
-				# Reset camera FOV to normal
-				camera.fov = 100
-
-		else:
-			# Set to initial speed when not boosting
-			MAX_SPEED = float(Initial_max_speed)  # Convert to float
-			ENGINE_POWER = float(Initial_engine_power)  # Convert to float
-
-	
-	
-
-func _proccess_boost(delta):
-	if Input.is_action_just_pressed("boost_debug") && !is_boosting:
-		print("BOOSTING")
-		boost_timer = float(boostDuration)  # Ensure boost timer is a float
-		is_boosting = true
-		MAX_SPEED = float(MAX_SPEED_BOOST)  # Convert MAX_SPEED_BOOST to float
-		ENGINE_POWER = float(BOOST_ENGINE_POWER)  # Convert BOOST_ENGINE_POWER to float
-
-		# Adjust camera FOV for boost
-		camera.fov = 1.0
-
-		# Reset the interpolation factor for a smooth transition
-		speed_lerp_factor = 0.0
-
-	if is_boosting:
-		# Reduce the boost timer by delta time
-		boost_timer -= delta
-
-		# Calculate forward direction
+		speed_lerp_factor = min(speed_lerp_factor + delta * BOOST_SPEED_TRANSITION_RATE, 1.0)
 		var forward_direction = global_transform.basis.z.normalized()
-
-		# Smoothly interpolate speed towards boosted speed
-		speed_lerp_factor = min(speed_lerp_factor + delta * BOOST_SPEED_TRANSITION_RATE, 1.0)  # Gradually increase the lerp factor
 		var target_speed = forward_direction * float(boostPower)
-		linear_velocity = linear_velocity.lerp(target_speed, speed_lerp_factor)  # Interpolate towards target speed
-		
+		linear_velocity = linear_velocity.lerp(target_speed, speed_lerp_factor)
+
+		if linear_velocity.length() > Initial_max_speed:
+			linear_velocity = linear_velocity.normalized() * min(linear_velocity.length(), MAX_SPEED)
+
 		if boost_timer <= 0:
-			# Stop boosting
-			is_boosting = false
-			MAX_SPEED = float(Initial_max_speed)  # Convert to float
-			ENGINE_POWER = float(Initial_engine_power)  # Convert to float
-			boost_timer = 0
-
-			# Reset camera FOV to normal
-			camera.fov = 100
-
+			_end_boost()
 	else:
-		# Set to initial speed when not boosting
-		MAX_SPEED = float(Initial_max_speed)  # Convert to float
-		ENGINE_POWER = float(Initial_engine_power)  # Convert to float
+		MAX_SPEED = float(Initial_max_speed)
+
+
+func _end_boost():
+	is_boosting = false
+	boost_timer = boostDuration
+	MAX_SPEED = float(Initial_max_speed)
+	ENGINE_POWER = float(Initial_engine_power)
+	camera.fov = normal_fov
+
+	if linear_velocity.length() > MAX_SPEED:
+		linear_velocity = linear_velocity.normalized() * MAX_SPEED
+
+	
+
 

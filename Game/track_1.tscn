@@ -3,13 +3,14 @@
 [ext_resource type="Texture2D" uid="uid://dl3j1ny70t032" path="res://Textures/kenney_prototype_textures/orange/texture_09.png" id="1_mrbgt"]
 [ext_resource type="PackedScene" uid="uid://dxbdmjmgua2h4" path="res://PlayerKart/camera.tscn" id="2_rpunu"]
 [ext_resource type="Script" path="res://Game/targetTOplayer.gd" id="3_b0dj6"]
-[ext_resource type="PackedScene" uid="uid://c234sbpgacxub" path="res://PlayerKart/PLAYERKARTPROTOTYPE.tscn" id="4_8f312"]
 [ext_resource type="Shader" path="res://Shaders/PicoPixel.gdshader" id="4_yi8s1"]
+[ext_resource type="PackedScene" uid="uid://co3dahc6ro6sh" path="res://PlayerKart/PLAYER.tscn" id="5_1s8hs"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_utsgx"]
-sky_top_color = Color(0, 0.486275, 0.67451, 1)
+sky_top_color = Color(0.0156863, 0.470588, 0.745098, 1)
 sky_horizon_color = Color(0, 0.756863, 0.694118, 1)
-ground_bottom_color = Color(0.0666667, 0.498039, 0.572549, 1)
+sky_curve = 0.109806
+ground_bottom_color = Color(0.2, 0.168627, 0.623529, 1)
 ground_horizon_color = Color(0, 0.756863, 0.67451, 1)
 ground_curve = 0.0221913
 
@@ -37,7 +38,7 @@ shader_parameter/change_color_depth = true
 shader_parameter/target_color_depth = 3
 shader_parameter/dithering = true
 shader_parameter/scale_resolution = true
-shader_parameter/target_resolution_scale = 3
+shader_parameter/target_resolution_scale = 2
 shader_parameter/enable_recolor = false
 
 [node name="TRACK1" type="Node3D"]
@@ -47,7 +48,6 @@ environment = SubResource("Environment_bejvm")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 7.87023, 0)
-sky_mode = 1
 
 [node name="CSGCombiner3D" type="CSGCombiner3D" parent="."]
 transform = Transform3D(88.151, 0, 0, 0, 49.13, 0, 0, 0, 135.444, 0, 0, 0)
@@ -79,27 +79,25 @@ handle_input_locally = false
 size = Vector2i(1152, 648)
 render_target_update_mode = 4
 
-[node name="PlayerKartPrototype" parent="Preview/SubViewportContainer/SubViewport" node_paths=PackedStringArray("cam_target") instance=ExtResource("4_8f312")]
-transform = Transform3D(-0.0959848, 0, 0.995383, 0, 1, 0, -0.995383, 0, -0.0959848, -70.302, 17.119, -59.005)
-cam_target = NodePath("../Camera")
-
-[node name="CamTarget" type="Marker3D" parent="Preview/SubViewportContainer/SubViewport/PlayerKartPrototype"]
-transform = Transform3D(-0.999999, 0, -1.49012e-07, 0, 1, 0, 1.49012e-07, 0, -0.999999, 0.0320168, 1.5561, -1.46219)
+[node name="fullView" type="Marker3D" parent="Preview/SubViewportContainer/SubViewport"]
+transform = Transform3D(0.0856525, 0.451329, -0.888237, -0.0433207, 0.892357, 0.449245, 0.995383, 3.72529e-09, 0.0959845, -114.702, 37.4699, -53.9134)
 gizmo_extents = 4.65
 script = ExtResource("3_b0dj6")
 enabled = false
-playerTarget = NodePath("..")
 
-[node name="fullView" type="Marker3D" parent="Preview/SubViewportContainer/SubViewport/PlayerKartPrototype"]
-transform = Transform3D(-1, 0, 2.08616e-07, 0, 1, 0, -2.08616e-07, 0, -1, -0.280716, 9.33852, -50.1353)
+[node name="Player" parent="Preview/SubViewportContainer/SubViewport" instance=ExtResource("5_1s8hs")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -70.472, 18.078, -58.897)
+
+[node name="CamTarget" type="Marker3D" parent="Preview/SubViewportContainer/SubViewport/Player"]
+transform = Transform3D(-0.999999, 0, -8.74227e-08, 0, 1, 0, 8.74227e-08, 0, -0.999999, -0.000480652, 0.000494003, -0.00038147)
 gizmo_extents = 4.65
 script = ExtResource("3_b0dj6")
 enabled = false
-playerTarget = NodePath("..")
 
 [node name="Camera" parent="Preview/SubViewportContainer/SubViewport" instance=ExtResource("2_rpunu")]
-transform = Transform3D(0.72953, 0, 0.683949, 0, 1, 0, -0.683949, 0, 0.72953, -163.541, 23.8197, 63.7233)
-target = NodePath("../PlayerKartPrototype/CamTarget")
-speed = 10.0
-rotation_speed = 4.0
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, -163.541, 23.8197, 63.7233)
+top_level = true
+target = NodePath("../Player/CamTarget")
+speed = 2.0
+rotation_speed = 2.0
 enabled = true
