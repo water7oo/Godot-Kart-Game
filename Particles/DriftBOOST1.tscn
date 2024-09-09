@@ -1,17 +1,32 @@
-[gd_scene load_steps=10 format=3 uid="uid://bpctyqd2ubf7g"]
+[gd_scene load_steps=20 format=3 uid="uid://bpctyqd2ubf7g"]
 
 [ext_resource type="Shader" uid="uid://di6cijaw084h6" path="res://Particles/DriftBOOST1.tres" id="1_3es7y"]
+[ext_resource type="Texture2D" uid="uid://drn24q566bla6" path="res://Textures/T_flare2.png" id="2_i3b62"]
 [ext_resource type="Texture2D" uid="uid://2b72kvgotu8s" path="res://Textures/T_flare81.png" id="2_nlvxg"]
+[ext_resource type="Shader" uid="uid://dvul8yukxw67t" path="res://Particles/DriftBoostSparks.tres" id="4_cqr3d"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_mx82n"]
 render_priority = 0
 shader = ExtResource("1_3es7y")
+shader_parameter/Texture = ExtResource("2_i3b62")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_e8og3"]
+render_priority = 0
+shader = ExtResource("1_3es7y")
 shader_parameter/Texture = ExtResource("2_nlvxg")
 
+[sub_resource type="Curve" id="Curve_m3kmw"]
+min_value = -360.0
+max_value = 360.0
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.49537, 360), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_oflxs"]
+curve = SubResource("Curve_m3kmw")
+
 [sub_resource type="Gradient" id="Gradient_0pvyu"]
-interpolation_mode = 1
-offsets = PackedFloat32Array(0, 0.531915)
-colors = PackedColorArray(0, 0.574832, 0.970695, 1, 0.677006, 0.942757, 1, 1)
+offsets = PackedFloat32Array(0, 0.654255)
+colors = PackedColorArray(0, 0.607843, 0.827451, 1, 0, 0.816667, 1, 1)
 
 [sub_resource type="GradientTexture1D" id="GradientTexture1D_dtfib"]
 gradient = SubResource("Gradient_0pvyu")
@@ -25,9 +40,11 @@ point_count = 2
 curve = SubResource("Curve_16082")
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_juilk"]
-angle_min = -180.0
-angle_max = 180.0
+angle_min = -90.0
+angle_max = 90.0
+angle_curve = SubResource("CurveTexture_oflxs")
 gravity = Vector3(0, 0, 0)
+scale_min = 2.0
 scale_max = 2.0
 scale_curve = SubResource("CurveTexture_mlfii")
 color_ramp = SubResource("GradientTexture1D_dtfib")
@@ -35,12 +52,48 @@ color_ramp = SubResource("GradientTexture1D_dtfib")
 [sub_resource type="QuadMesh" id="QuadMesh_l58tt"]
 size = Vector2(4, 4)
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mx0pc"]
+render_priority = 0
+shader = ExtResource("4_cqr3d")
+
+[sub_resource type="Gradient" id="Gradient_dexdt"]
+colors = PackedColorArray(0, 0, 1, 1, 0, 1, 1, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_yfayk"]
+gradient = SubResource("Gradient_dexdt")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_i2j8r"]
+particle_flag_align_y = true
+direction = Vector3(0, 1, 0)
+spread = 180.0
+initial_velocity_min = 8.0
+initial_velocity_max = 12.0
+gravity = Vector3(0, 0, 0)
+scale_min = 0.5
+scale_max = 0.5
+color_ramp = SubResource("GradientTexture1D_yfayk")
+
+[sub_resource type="QuadMesh" id="QuadMesh_l2a0g"]
+size = Vector2(0.5, 1)
+
 [node name="Node3D" type="Node3D"]
 
 [node name="GPUParticles3D" type="GPUParticles3D" parent="."]
 material_override = SubResource("ShaderMaterial_mx82n")
+material_overlay = SubResource("ShaderMaterial_e8og3")
+transparency = 1.0
 emitting = false
-amount = 2
 lifetime = 0.01
 process_material = SubResource("ParticleProcessMaterial_juilk")
 draw_pass_1 = SubResource("QuadMesh_l58tt")
+
+[node name="GPUParticles3D2" type="GPUParticles3D" parent="."]
+visible = false
+material_override = SubResource("ShaderMaterial_mx0pc")
+emitting = false
+amount = 25
+speed_scale = 7.03
+explosiveness = 1.0
+randomness = 1.0
+process_material = SubResource("ParticleProcessMaterial_i2j8r")
+draw_pass_1 = SubResource("QuadMesh_l2a0g")

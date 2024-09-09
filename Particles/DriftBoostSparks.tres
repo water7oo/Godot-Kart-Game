@@ -1,0 +1,17 @@
+[gd_resource type="VisualShader" load_steps=2 format=3 uid="uid://dvul8yukxw67t"]
+
+[sub_resource type="VisualShaderNodeBillboard" id="VisualShaderNodeBillboard_dtiby"]
+
+[resource]
+code = "shader_type spatial;
+render_mode blend_mix, depth_draw_opaque, cull_disabled, diffuse_toon, specular_schlick_ggx, unshaded;
+
+
+
+"
+graph_offset = Vector2(-205.916, 5.73161)
+modes/cull = 2
+modes/diffuse = 3
+flags/unshaded = true
+nodes/vertex/2/node = SubResource("VisualShaderNodeBillboard_dtiby")
+nodes/vertex/2/position = Vector2(-80, 200)

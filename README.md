@@ -1,5 +1,5 @@
 # Godot-Kart-Game
-Currently playing through mario kart DS and felt like making a lil kart game
+Have speed_lerp_factor be based off of current speed + current MAX_STEER value
 
 Game Name Ideas
 

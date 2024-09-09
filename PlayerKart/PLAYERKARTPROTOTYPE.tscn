@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=3 uid="uid://c234sbpgacxub"]
+[gd_scene load_steps=42 format=3 uid="uid://c234sbpgacxub"]
 
 [ext_resource type="Script" path="res://Scripts/PLAYER.gd" id="1_2a7lg"]
 [ext_resource type="Material" uid="uid://dbyby88f0slxu" path="res://Materials/KartTexture.tres" id="2_w85gl"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://bw6ni2fvfq41r" path="res://Particles/Drifting_Dust.tscn" id="5_fbn2b"]
 [ext_resource type="PackedScene" uid="uid://bpctyqd2ubf7g" path="res://Particles/DriftBOOST1.tscn" id="6_oj67v"]
 [ext_resource type="AudioStream" uid="uid://ddk4kr33mbcvb" path="res://SFX/car-acceleration-inside-car-7087.mp3" id="6_sj4tr"]
+[ext_resource type="AudioStream" uid="uid://dqtb2xg3dnnga" path="res://SFX/car speeding off  drifting sound effect (royalty free).mp3" id="8_qa4q6"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_j3xoh"]
 friction = 0.0
@@ -313,15 +314,17 @@ Initial_max_steer = 0.3
 Initial_max_speed = 90
 MAX_STEER = 0.3
 MAX_SPEED = 90
-DRIFT_STEER = 0.5
+DRIFT_STEER = 0.9
 MAX_SPEED_BOOST = 150
 Initial_engine_power = 300
 BOOST_ENGINE_POWER = 350
-gravity = 30
+gravity = 40
 torquePower = 1
 boostPower = 120
+speed_lerp_factor = 0.05
 BRAKE_FORCE = 300
-DRIFT_FORCE = 1
+DRIFT_FORCE = 20
+MAX_DRIFT_ANGLE = 45
 target_speed_power = 20
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
@@ -460,14 +463,19 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.66741, 0.255855, -2.85529)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.59729, 0.254766, -2.91871)
 
 [node name="DriftBoost1" parent="." instance=ExtResource("6_oj67v")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.55986, 0.101946, -2.9509)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.97743, 0.04785, -2.62535)
 
 [node name="DriftBoost2" parent="." instance=ExtResource("6_oj67v")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.70497, 0.101946, -2.9509)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.03657, 0.0601314, -2.62535)
 
 [node name="Marker3D" type="Marker3D" parent="."]
 gizmo_extents = 3.58
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("6_sj4tr")
+volume_db = -9.707
 mix_target = 2
+
+[node name="AudioStreamPlayer2" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("8_qa4q6")
+volume_db = -21.185

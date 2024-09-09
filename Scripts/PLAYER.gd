@@ -35,7 +35,7 @@ var playerLook = camera_preload.get_node("SpringArmPivot/MeshInstance3D")
 @export var torquePower = 100
 @export var boostPower = 20
 @export var boost_timer = 0.0
-@export var speed_lerp_factor := 0.00002
+@export var speed_lerp_factor := 0.000007
 @export var BOOST_SPEED_TRANSITION_RATE = 12
 @export var BRAKE_FORCE = 10
 
@@ -71,7 +71,7 @@ var driftBoostSpark = 1
 # Drift parameters
 var is_drifting: bool = false
 var drift_progress: float = 1.0
-var drift_duration: float = 900 # Time to fully drift (in seconds)
+var drift_duration: float = 1000 # Time to fully drift (in seconds)
 
 
 var is_drift_sparking1 = false
@@ -105,10 +105,9 @@ func _physics_process(delta):
 		
 	_proccess_movement(delta)
 	_process_drifting(delta)
-	#carSounds(delta)
+	carSounds(delta)
 	
 	if Input.is_action_pressed("boost_debug") && !is_boosting && Input.is_action_pressed("move_gas"):
-		apply_torque(Vector3(70,70,70))
 		is_boosting = true
 		boost_timer = boostDuration  # Initialize the boost timer
 		_playerBoost(delta)
@@ -161,9 +160,11 @@ func _proccess_movement(delta):
 	set_brake(Input.get_action_strength("move_brake") * Initial_engine_power)
 		
 	if Input.is_action_pressed("move_brake"):
+		ENGINE_POWER -= 50
 		Wheel1.use_as_traction = true
 		Wheel2.use_as_traction = true
 	else:
+		ENGINE_POWER = Initial_engine_power
 		Wheel1.use_as_traction = false
 		Wheel2.use_as_traction = false
 
@@ -175,7 +176,7 @@ func _unhandled_input(event):
 	
 
 func carSounds(delta):
-	if Input.is_action_pressed("move_gas"):
+	if Input.is_action_pressed("move_gas") && linear_velocity.length() >= MAX_SPEED - 60:
 			if not $AudioStreamPlayer.is_playing():
 				$AudioStreamPlayer.play()  # Only play if it's not already playing
 				print("VROOOOM")
@@ -210,56 +211,57 @@ func particles(delta):
 			#DriftSparks2.set_emitting(false)
 
 func _process_drifting(delta):
-	if Input.is_action_pressed("move_drift") && isOnGround && Input.is_action_pressed("move_gas") && linear_velocity.length() >= MAX_SPEED - 90:
+	if Input.is_action_pressed("move_drift") and isOnGround and Input.is_action_pressed("move_gas") and linear_velocity.length() >= MAX_SPEED - 55:
 		driftBoostTimer += delta  # Start counting drift time
-
-		print(driftBoostSpark)
 		driftBoostSpark -= delta
-		
-		var direction = Vector3(0, 0, 0)
-		if Input.is_action_pressed("move_left") && isOnGround:
-			direction = -transform.basis.x
+
+		var direction = Vector3.ZERO
+		if Input.is_action_pressed("move_left") and isOnGround:
+			direction = -transform.basis.x  # Left drift direction
 			is_drifting = true
-			
-				
-		elif Input.is_action_pressed("move_right") && isOnGround:
+		elif Input.is_action_pressed("move_right") and isOnGround:
 			direction = transform.basis.x  # Right drift direction
 			is_drifting = true
-			
-			if Input.is_action_pressed("move_left"):
-				print("Counter left")
 		else:
 			stop_drifting(delta)
 
 		# Apply a gradual force in the direction of the drift
-		if is_drifting:
-
+		if is_drifting and isOnGround:
 			# Adjust friction progressively based on the duration of the drift
 			drift_progress += delta / drift_duration
 			drift_progress = clamp(drift_progress, 0.0, 1.0)
+
+			# Play drift sound if not already playing
+			if not $AudioStreamPlayer2.is_playing():
+				$AudioStreamPlayer2.play()
 
 			# Reduce rear friction gradually to simulate drifting/sliding
 			var rear_friction = lerp(normal_friction_slip_back, drift_friction_slip_back, drift_progress)
 			Wheel3.wheel_friction_slip = rear_friction
 			Wheel4.wheel_friction_slip = rear_friction
-			
-			# Adjust speed logic to maintain current speed during drifting
+
+			# Maintain current speed during drifting
 			var forward_direction = global_transform.basis.z.normalized()
 			var drift_direction = direction.normalized()
-			
-			# Combined forward and drift direction
 			var combined_direction = (forward_direction + drift_direction).normalized()
-			
-			# Target speed based on current velocity and maximum allowed speed
+
 			var current_speed = linear_velocity.length()
-			var target_speed = combined_direction * clamp(current_speed, MAX_SPEED - 900, MAX_SPEED)
-			
-			# Smoothly adjust the velocity to approach target speed while drifting
+			var target_speed = combined_direction * clamp(current_speed, MAX_SPEED - 10, MAX_SPEED)
+
+			# Smoothly adjust the velocity to approach the target speed while drifting
 			linear_velocity = linear_velocity.lerp(target_speed, speed_lerp_factor)
-		
+
+			# Apply additional force to maintain speed during the drift
+			apply_central_impulse(forward_direction * DRIFT_FORCE)
+
 	else:
 		stop_drifting(delta)
 		driftBoostSpark = 1
+
+		# Stop the sound when drifting ends
+		if $AudioStreamPlayer2.is_playing():
+			$AudioStreamPlayer2.stop()
+
 
 
 func stop_drifting(delta):
@@ -271,10 +273,9 @@ func stop_drifting(delta):
 	Wheel4.wheel_friction_slip = normal_friction_slip_back
 	physics_material_override.friction = 1
 
-
 func boostSparking(delta):
 	# Check if drift boost spark timer has expired
-	if driftBoostSpark <= 0 and !is_drift_sparking1:
+	if driftBoostSpark <= 0 and !is_drift_sparking1 && isOnGround:
 		var DriftSparks1 = $DriftBoost1/GPUParticles3D
 		var DriftSparks2 = $DriftBoost2/GPUParticles3D
 		
