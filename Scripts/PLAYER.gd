@@ -157,16 +157,16 @@ func _proccess_movement(delta):
 		#print("REDUCE SPEED")
 	
 	set_engine_force(engine_force)
-	set_brake(Input.get_action_strength("move_brake") * Initial_engine_power)
+	#set_brake(Input.get_action_strength("move_brake") * 5000 * BRAKE_FORCE)
 		
-	if Input.is_action_pressed("move_brake"):
-		ENGINE_POWER -= 50
-		Wheel1.use_as_traction = true
-		Wheel2.use_as_traction = true
-	else:
-		ENGINE_POWER = Initial_engine_power
-		Wheel1.use_as_traction = false
-		Wheel2.use_as_traction = false
+	#if Input.is_action_pressed("move_brake"):
+		#ENGINE_POWER -= 50
+		#Wheel1.use_as_traction = true
+		#Wheel2.use_as_traction = true
+	#else:
+		#ENGINE_POWER = Initial_engine_power
+		#Wheel1.use_as_traction = false
+		#Wheel2.use_as_traction = false
 
 func _unhandled_input(event):
 	if Input.is_action_just_pressed("quit_game"):
@@ -212,6 +212,7 @@ func particles(delta):
 
 func _process_drifting(delta):
 	if Input.is_action_pressed("move_drift") and isOnGround and Input.is_action_pressed("move_gas") and linear_velocity.length() >= MAX_SPEED - 55:
+		#await get_tree().create_timer(1).timeout
 		driftBoostTimer += delta  # Start counting drift time
 		driftBoostSpark -= delta
 
@@ -247,7 +248,7 @@ func _process_drifting(delta):
 
 			var current_speed = linear_velocity.length()
 			var target_speed = combined_direction * clamp(current_speed, MAX_SPEED - 10, MAX_SPEED)
-
+			
 			# Smoothly adjust the velocity to approach the target speed while drifting
 			linear_velocity = linear_velocity.lerp(target_speed, speed_lerp_factor)
 
@@ -261,6 +262,9 @@ func _process_drifting(delta):
 		# Stop the sound when drifting ends
 		if $AudioStreamPlayer2.is_playing():
 			$AudioStreamPlayer2.stop()
+	
+	if !isOnGround:
+		stop_drifting(delta)
 
 
 

@@ -5,7 +5,7 @@
 [ext_resource type="Script" path="res://Game/targetTOplayer.gd" id="3_b0dj6"]
 [ext_resource type="PackedScene" uid="uid://c234sbpgacxub" path="res://PlayerKart/PLAYERKARTPROTOTYPE.tscn" id="4_geoji"]
 [ext_resource type="Shader" path="res://Shaders/PicoPixel.gdshader" id="4_yi8s1"]
-[ext_resource type="PackedScene" uid="uid://kjfw1np6qxl1" path="res://Tracks/mario_kart_dstrack.tscn" id="6_2vx4r"]
+[ext_resource type="PackedScene" uid="uid://kjfw1np6qxl1" path="res://Tracks/mario_kart_dstrack.tscn" id="6_tlmdq"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_utsgx"]
 sky_top_color = Color(0.0156863, 0.470588, 0.745098, 1)
@@ -81,13 +81,13 @@ size = Vector2i(1152, 648)
 render_target_update_mode = 4
 
 [node name="fullView" type="Marker3D" parent="Preview/SubViewportContainer/SubViewport"]
-transform = Transform3D(0.995383, 6.97287e-09, 0.0959845, -0.000316694, 0.999994, 0.00328323, -0.0959841, -0.00329867, 0.995377, -164.262, 88.9811, 8.79364)
+transform = Transform3D(0.995383, 6.97287e-09, 0.0959845, -0.000316694, 0.999994, 0.00328323, -0.0959841, -0.00329867, 0.995377, -164.262, 38.1663, 8.79364)
 gizmo_extents = 4.65
 script = ExtResource("3_b0dj6")
 enabled = false
 
 [node name="PlayerKartPrototype" parent="Preview/SubViewportContainer/SubViewport" instance=ExtResource("4_geoji")]
-transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, -140.944, 74.6942, -55.087)
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, -140.944, 119.346, -55.087)
 
 [node name="CamTarget" type="Marker3D" parent="Preview/SubViewportContainer/SubViewport/PlayerKartPrototype"]
 transform = Transform3D(-0.999999, 0, 8.74227e-08, 0, 1, 0, -8.74227e-08, 0, -0.999999, 0.00038147, -0.000461578, -0.000480652)
@@ -98,11 +98,11 @@ speed = 1000.0
 rotation_speed = 1000.0
 
 [node name="Camera" parent="Preview/SubViewportContainer/SubViewport" instance=ExtResource("2_rpunu")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -163.541, 75.3309, 126.43)
+transform = Transform3D(-1, 0, 8.74228e-08, 2.05716e-08, 0.97192, 0.235312, -8.49679e-08, 0.235312, -0.97192, -140.211, 27.9638, -56.1494)
 target = NodePath("../PlayerKartPrototype/CamTarget")
 speed = 10.0
 rotation_speed = 5.0
 enabled = true
 
-[node name="MarioKartDSTRACK" parent="." instance=ExtResource("6_2vx4r")]
-transform = Transform3D(3.5, 0, 0, 0, 3.5, 0, 0, 0, 3.5, 0, -44.4367, 0)
+[node name="MarioKartDSTRACK" parent="." instance=ExtResource("6_tlmdq")]
+transform = Transform3D(3.5, 0, 4.9738e-14, 0, 3.5, 0, -4.9738e-14, 0, 3.5, -140.944, 23.8788, -55.0865)

@@ -88,7 +88,6 @@ process_material = SubResource("ParticleProcessMaterial_juilk")
 draw_pass_1 = SubResource("QuadMesh_l58tt")
 
 [node name="GPUParticles3D2" type="GPUParticles3D" parent="."]
-visible = false
 material_override = SubResource("ShaderMaterial_mx0pc")
 emitting = false
 amount = 25

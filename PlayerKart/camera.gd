@@ -10,7 +10,7 @@ extends Node3D
 @export var spring_arm_pivot: Node3D
 @onready var camera = $SpringArmPivot/SpringArm3D/Camera3D
 var cam_lerp_speed = .005
-@onready var cam_fov = camera.fov
+
 
 var original_global_transform: Transform3D
 var target_node: Node3D
@@ -36,6 +36,7 @@ func followTarget(delta):
 	
 	global_transform = new_global_transform
 	global_transform.basis = new_rotation
+	
 	
 	#Assign rotation variable for camera follow
 	

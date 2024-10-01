@@ -16,7 +16,7 @@ config/features=PackedStringArray("4.2", "Forward Plus")
 
 [editor]
 
-movie_writer/movie_file="C:/Users/scott/OneDrive/Desktop/Desktop Stuff/Timelapses_Recordings/GODOT_GAME_RECORDINGS/kartgame2.avi"
+movie_writer/movie_file="C:/Users/scott/OneDrive/Desktop/Desktop Stuff/Timelapses_Recordings/GODOT_GAME_RECORDINGS/kartgame3.avi"
 
 [input]
 
